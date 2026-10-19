@@ -1,0 +1,13 @@
+.map-picker {
+  display: grid;
+  gap: 0.4rem;
+}
+
+fieldset {
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+}
+
+.admin-main h1 {
+  margin-bottom: 0.6rem;
+}
