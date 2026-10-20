@@ -6,9 +6,9 @@ export const copy = {
 };
 
 export const categories = [
-  { value: "roads", label: "Roads" },
+  { value: "roads", label: "Roads & drainage" },
   { value: "waste", label: "Waste" },
-  { value: "water", label: "Water" },
+  { value: "water", label: "Water supply" },
   { value: "unsafe_spaces", label: "Unsafe spaces" },
   { value: "other", label: "Other" },
 ];
@@ -54,4 +54,9 @@ export function photoSrc(url) {
   if (url.startsWith("http")) return url;
   const origin = import.meta.env.VITE_UPLOAD_ORIGIN || "http://localhost:5000";
   return `${origin}${url}`;
+}
+
+export function formatDay(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }

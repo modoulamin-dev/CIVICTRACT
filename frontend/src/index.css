@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+/* Brand: Gambian flag green. Supporting colors give each category and status its
+   own identity; the flag red/blue appear only as accents (flag stripe, highlights). */
+@theme {
+  --color-brand-50: #f1f8ee;
+  --color-brand-100: #dfefd8;
+  --color-brand-200: #bfdfb2;
+  --color-brand-300: #94c882;
+  --color-brand-400: #69ad55;
+  --color-brand-500: #4a8f37;
+  --color-brand-600: #3a7728;
+  --color-brand-700: #2f5f21;
+  --color-brand-800: #284c1d;
+  --color-brand-900: #1f3a17;
+  --color-brand-950: #0f2109;
+  --color-brand: #3a7728;
+  --color-flag-red: #ce1126;
+  --color-flag-blue: #0c1c8c;
+
+  --font-sans: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+  --shadow-lift: 0 12px 32px -12px rgb(15 23 42 / 0.18), 0 2px 6px rgb(15 23 42 / 0.05);
+
+  --animate-rise: rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-3 outline-offset-2 outline-brand-500;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-brand-600 text-white shadow-sm shadow-brand-900/20 hover:bg-brand-700 hover:shadow-md hover:shadow-brand-900/20;
+  }
+  .btn-secondary {
+    @apply border border-slate-200 bg-white text-slate-800 shadow-card hover:border-slate-300 hover:bg-slate-50;
+  }
+  .btn-ghost {
+    @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+  }
+  .btn-lg {
+    @apply px-6 py-3.5 text-base;
+  }
+
+  .card {
+    @apply rounded-2xl border border-slate-200/80 bg-white shadow-card;
+  }
+  .card-hover {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lift;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-semibold text-slate-800;
+  }
+  .field-hint {
+    @apply -mt-0.5 mb-2 block text-sm text-slate-500;
+  }
+  .input {
+    @apply block w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 shadow-sm transition placeholder:text-slate-400 hover:border-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 focus:outline-none;
+  }
+
+  .link {
+    @apply font-semibold text-brand-700 underline decoration-brand-300 decoration-2 underline-offset-4 transition-colors hover:text-brand-800 hover:decoration-brand-600;
+  }
+
+  .eyebrow {
+    @apply text-xs font-bold tracking-[0.14em] text-brand-700 uppercase;
+  }
+
+  /* Thin Gambian flag stripe: red, white, blue, white, green. */
+  .flag-stripe {
+    background: linear-gradient(
+      to right,
+      var(--color-flag-red) 0 32%,
+      #fff 32% 34%,
+      var(--color-flag-blue) 34% 66%,
+      #fff 66% 68%,
+      var(--color-brand-600) 68% 100%
+    );
+  }
+
+  .dot-grid {
+    background-image: radial-gradient(rgb(15 23 42 / 0.07) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+}
