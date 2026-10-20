@@ -1,12 +1,11 @@
-import { Clock, Siren } from "lucide-react";
 import { CATEGORY_META, STATUS_META, STATUS_ORDER } from "../utils/meta.js";
 
-const PILL = "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset whitespace-nowrap";
+const BADGE = "inline-flex h-5 items-center gap-1.5 rounded-full border px-2 text-xs font-medium whitespace-nowrap";
 
 export function StatusBadge({ status }) {
   const meta = STATUS_META[status];
   return (
-    <span className={`${PILL} ${meta.pill}`}>
+    <span className={`${BADGE} border-neutral-200 bg-white text-neutral-700`}>
       <span className={`size-1.5 rounded-full ${meta.dot}`} aria-hidden="true" />
       {meta.label}
     </span>
@@ -15,46 +14,42 @@ export function StatusBadge({ status }) {
 
 export function UrgentBadge() {
   return (
-    <span className={`${PILL} bg-red-50 text-red-700 ring-red-200`}>
-      <Siren className="size-3.5" aria-hidden="true" />
+    <span className={`${BADGE} border-red-200 bg-red-50 text-red-700`}>
+      <span className="size-1.5 rounded-full bg-red-500" aria-hidden="true" />
       Urgent
     </span>
   );
 }
 
 export function OverdueBadge() {
-  return (
-    <span className={`${PILL} bg-white text-slate-600 ring-slate-300`}>
-      <Clock className="size-3.5" aria-hidden="true" />
-      Over 7 days
-    </span>
-  );
+  return <span className={`${BADGE} border-neutral-200 bg-neutral-50 text-neutral-500`}>Over 7 days</span>;
 }
 
 const ICON_SIZES = {
-  sm: "size-8 rounded-lg [&>svg]:size-4",
-  md: "size-10 rounded-xl [&>svg]:size-5",
-  lg: "size-12 rounded-2xl [&>svg]:size-6",
+  sm: "size-7 [&>svg]:size-3.5",
+  md: "size-8 [&>svg]:size-4",
+  lg: "size-10 [&>svg]:size-5",
 };
 
 export function CategoryIcon({ category, size = "md" }) {
-  const meta = CATEGORY_META[category] || CATEGORY_META.other;
-  const Icon = meta.icon;
+  const Icon = (CATEGORY_META[category] || CATEGORY_META.other).icon;
   return (
-    <span className={`grid shrink-0 place-items-center ring-1 ring-inset ${meta.chip} ${ICON_SIZES[size]}`} aria-hidden="true">
-      <Icon strokeWidth={2} />
+    <span
+      className={`grid shrink-0 place-items-center rounded-md border border-neutral-200 bg-neutral-50 text-neutral-600 ${ICON_SIZES[size]}`}
+      aria-hidden="true"
+    >
+      <Icon strokeWidth={1.75} />
     </span>
   );
 }
 
-// Four-segment progress bar: received → assigned → in progress → resolved.
+// Four-segment progress: received → assigned → in progress → resolved.
 export function MiniProgress({ status }) {
   const current = STATUS_ORDER.indexOf(status);
-  const color = STATUS_META[status].bar;
   return (
-    <div className="flex gap-1" role="img" aria-label={`Progress: ${STATUS_META[status].label}`}>
+    <div className="flex gap-0.5" role="img" aria-label={`Progress: ${STATUS_META[status].label}`}>
       {STATUS_ORDER.map((step, index) => (
-        <span key={step} className={`h-1.5 flex-1 rounded-full ${index <= current ? color : "bg-slate-100"}`} />
+        <span key={step} className={`h-1 flex-1 rounded-full ${index <= current ? "bg-neutral-900" : "bg-neutral-200"}`} />
       ))}
     </div>
   );

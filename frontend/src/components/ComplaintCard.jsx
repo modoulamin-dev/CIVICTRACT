@@ -1,56 +1,29 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Building2, MapPin } from "lucide-react";
 import { CATEGORY_META, timeAgo } from "../utils/meta.js";
 import { CategoryIcon, MiniProgress, StatusBadge } from "./StatusBadge.jsx";
 
 // Public complaint card. Opens the Track page, the single place where a citizen
 // reads a complaint's full story.
-export function ComplaintCard({ complaint, index = 0 }) {
-  const category = CATEGORY_META[complaint.category];
+export function ComplaintCard({ complaint }) {
   return (
-    <li className="animate-rise" style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}>
-      <Link
-        to={`/track/${complaint.trackingNumber}`}
-        className="card card-hover group relative flex h-full flex-col overflow-hidden p-5"
-      >
-        <span className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${category.accent}`} aria-hidden="true" />
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <CategoryIcon category={complaint.category} />
-            <div>
-              <p className="text-sm font-semibold text-slate-800">{category.label}</p>
-              <p className="text-xs text-slate-500">{timeAgo(complaint.createdAt)}</p>
-            </div>
+    <li>
+      <Link to={`/track/${complaint.trackingNumber}`} className="card card-link flex h-full flex-col p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <CategoryIcon category={complaint.category} size="sm" />
+            <span className="truncate text-[13px] text-neutral-500">{CATEGORY_META[complaint.category].label}</span>
           </div>
           <StatusBadge status={complaint.status} />
         </div>
-
-        <h3 className="mt-4 line-clamp-2 text-base font-bold text-slate-900 group-hover:text-brand-700">
-          {complaint.title}
-        </h3>
-        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-slate-600">{complaint.description}</p>
-
-        <div className="mt-auto pt-5">
+        <h3 className="mt-3 line-clamp-1 font-medium text-neutral-900">{complaint.title}</h3>
+        <p className="mt-1 line-clamp-2 text-[13px] leading-5 text-neutral-500">{complaint.description}</p>
+        <div className="mt-auto pt-4">
           <MiniProgress status={complaint.status} />
-          <div className="mt-4 flex flex-col gap-1.5 border-t border-slate-100 pt-4 text-sm text-slate-600">
-            <span className="flex items-center gap-2">
-              <MapPin className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
-              <span className="truncate">
-                {complaint.location.area}, {complaint.location.region}
-              </span>
+          <div className="mt-3 flex items-center justify-between gap-3 text-xs text-neutral-500">
+            <span className="truncate">
+              {complaint.location.area} · {complaint.department?.name}
             </span>
-            <span className="flex items-center gap-2">
-              <Building2 className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
-              <span className="truncate">{complaint.department?.name}</span>
-            </span>
-          </div>
-          <div className="mt-4 flex items-center justify-between">
-            <span className="rounded-md bg-slate-100 px-2 py-1 font-mono text-xs font-medium text-slate-600">
-              {complaint.trackingNumber}
-            </span>
-            <span className="flex items-center gap-1 text-sm font-semibold text-brand-700 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-              View <ArrowUpRight className="size-4" aria-hidden="true" />
-            </span>
+            <span className="shrink-0">{timeAgo(complaint.createdAt)}</span>
           </div>
         </div>
       </Link>

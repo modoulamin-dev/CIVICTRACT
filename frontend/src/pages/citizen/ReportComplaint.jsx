@@ -1,100 +1,50 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Building2,
-  Check,
-  CircleAlert,
-  Copy,
-  ImagePlus,
-  LocateFixed,
-  Lock,
-  MapPin,
-  Search,
-  Send,
-  X,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleAlert, Copy, ImagePlus, LocateFixed, X } from "lucide-react";
 import { departments, submitComplaint } from "../../data/mock.js";
 import { CategoryIcon } from "../../components/StatusBadge.jsx";
 import { CATEGORY_META } from "../../utils/meta.js";
 import { regions } from "../../utils/strings.js";
 
-const STEPS = [
-  { title: "What is the problem?", short: "Problem" },
-  { title: "Where is it?", short: "Location" },
-  { title: "Photo and contact", short: "Details" },
-];
+const STEPS = ["Problem", "Location", "Details"];
+const TITLES = ["What is the problem?", "Where is it?", "Photo and contact"];
 
-function Stepper({ step }) {
+function Steps({ step }) {
   return (
-    <ol className="flex items-center gap-2" aria-label="Form progress">
-      {STEPS.map((item, index) => {
-        const done = index < step;
-        const active = index === step;
-        return (
-          <li key={item.short} className="flex flex-1 items-center gap-2" aria-current={active ? "step" : undefined}>
-            <span
-              className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold transition ${
-                done
-                  ? "bg-brand-600 text-white"
-                  : active
-                    ? "bg-white text-brand-700 shadow-[0_0_0_2px_var(--color-brand-500)]"
-                    : "bg-slate-100 text-slate-400"
-              }`}
-            >
-              {done ? <Check className="size-4" strokeWidth={3} /> : index + 1}
-            </span>
-            <span className={`hidden text-sm font-semibold sm:block ${active || done ? "text-slate-900" : "text-slate-400"}`}>
-              {item.short}
-            </span>
-            {index < STEPS.length - 1 ? (
-              <span className={`h-0.5 flex-1 rounded-full ${done ? "bg-brand-500" : "bg-slate-200"}`} aria-hidden="true" />
-            ) : null}
-          </li>
-        );
-      })}
+    <ol className="grid grid-cols-3 gap-2" aria-label="Form progress">
+      {STEPS.map((label, index) => (
+        <li key={label} aria-current={index === step ? "step" : undefined}>
+          <div className={`h-1 rounded-full ${index <= step ? "bg-neutral-900" : "bg-neutral-200"}`} />
+          <p className={`mt-2 text-xs ${index <= step ? "font-medium text-neutral-900" : "text-neutral-400"}`}>
+            {index + 1}. {label}
+          </p>
+        </li>
+      ))}
     </ol>
   );
 }
 
 function Summary({ form }) {
-  const category = CATEGORY_META[form.category];
   const department = departments.find((d) => d.categories.includes(form.category));
+  const rows = [
+    ["Problem", CATEGORY_META[form.category]?.label],
+    ["Location", form.area ? `${form.area}, ${form.region}` : null],
+    ["Sent to", department?.name],
+  ];
   return (
-    <div className="card p-6">
-      <p className="text-sm font-bold text-slate-900">Your report so far</p>
-      <dl className="mt-4 space-y-4 text-sm">
-        <div className="flex items-center gap-3">
-          {form.category ? <CategoryIcon category={form.category} size="sm" /> : <span className="size-8 rounded-lg bg-slate-100" />}
-          <div>
-            <dt className="text-xs text-slate-500">Problem</dt>
-            <dd className="font-semibold text-slate-800">{category?.label || "Not chosen yet"}</dd>
+    <div className="card">
+      <p className="border-b border-neutral-200 px-4 py-3 font-medium">Summary</p>
+      <dl className="divide-y divide-neutral-100 px-4">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex justify-between gap-4 py-2.5 text-[13px]">
+            <dt className="text-neutral-500">{label}</dt>
+            <dd className={`text-right ${value ? "font-medium text-neutral-900" : "text-neutral-400"}`}>{value || "—"}</dd>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid size-8 place-items-center rounded-lg bg-slate-100 text-slate-500">
-            <MapPin className="size-4" aria-hidden="true" />
-          </span>
-          <div>
-            <dt className="text-xs text-slate-500">Location</dt>
-            <dd className="font-semibold text-slate-800">{form.area ? `${form.area}, ${form.region}` : "Not given yet"}</dd>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="grid size-8 place-items-center rounded-lg bg-brand-50 text-brand-700">
-            <Building2 className="size-4" aria-hidden="true" />
-          </span>
-          <div>
-            <dt className="text-xs text-slate-500">Will be sent to</dt>
-            <dd className="font-semibold text-slate-800">{department?.name || "Chosen from the problem type"}</dd>
-          </div>
-        </div>
+        ))}
       </dl>
-      <div className="mt-6 flex gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600 ring-1 ring-slate-100">
-        <Lock className="mt-0.5 size-4 shrink-0 text-slate-400" aria-hidden="true" />
-        <p>No account needed. Your name and phone are only seen by the department, never shown publicly.</p>
-      </div>
+      <p className="border-t border-neutral-200 bg-neutral-50/70 px-4 py-3 text-xs leading-5 text-neutral-500">
+        No account needed. Contact details are only seen by the office, never shown publicly.
+      </p>
     </div>
   );
 }
@@ -102,54 +52,48 @@ function Summary({ form }) {
 function Confirmation({ result }) {
   const [copied, setCopied] = useState(false);
   return (
-    <main className="relative flex-1 overflow-hidden bg-white">
-      <div className="dot-grid absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black,transparent_65%)]" aria-hidden="true" />
-      <div className="relative mx-auto max-w-xl px-4 py-14 text-center sm:py-20">
-        <span className="relative mx-auto grid size-20 place-items-center">
-          <span className="absolute inset-0 animate-ping rounded-full bg-brand-200 opacity-50 [animation-iteration-count:2]" />
-          <span className="relative grid size-20 place-items-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-900/30">
-            <Check className="size-10" strokeWidth={3} />
-          </span>
+    <main className="container-page flex-1 py-16 sm:py-24">
+      <div className="mx-auto max-w-md animate-fade">
+        <span className="grid size-9 place-items-center rounded-full bg-brand-600 text-white">
+          <Check className="size-4" strokeWidth={2.5} />
         </span>
-        <h1 className="mt-8 text-3xl font-extrabold tracking-tight sm:text-4xl">Complaint sent</h1>
-        <p className="mt-3 text-lg text-slate-600">Thank you. The responsible office has received your report.</p>
+        <h1 className="mt-5 text-2xl font-semibold tracking-tight">Complaint sent</h1>
+        <p className="mt-1.5 text-neutral-500">The responsible office has received your report.</p>
 
-        <div className="card mt-10 overflow-hidden text-left">
-          <div className="border-b border-dashed border-slate-200 p-6">
-            <p className="text-sm font-semibold text-slate-500">Your tracking number</p>
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <p className="font-mono text-2xl font-bold tracking-wider text-slate-900 sm:text-3xl">{result.trackingNumber}</p>
+        <div className="card mt-8">
+          <div className="p-4">
+            <p className="text-[13px] text-neutral-500">Tracking number</p>
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <p className="font-mono text-xl font-medium tracking-wide">{result.trackingNumber}</p>
               <button
                 type="button"
-                className="btn btn-secondary px-3"
+                className="btn btn-secondary btn-sm"
                 onClick={() => {
                   navigator.clipboard?.writeText(result.trackingNumber);
                   setCopied(true);
                 }}
               >
-                {copied ? <Check className="size-4 text-brand-600" /> : <Copy className="size-4" />}
-                <span>{copied ? "Copied" : "Copy"}</span>
+                {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                {copied ? "Copied" : "Copy"}
               </button>
             </div>
           </div>
-          <div className="flex items-center gap-4 bg-slate-50/70 p-6">
+          <div className="flex items-center gap-3 border-t border-neutral-200 p-4">
             <CategoryIcon category={result.category} />
             <div>
-              <p className="text-sm text-slate-500">Sent to</p>
-              <p className="font-bold text-slate-900">{result.department.name}</p>
+              <p className="text-[13px] text-neutral-500">Sent to</p>
+              <p className="font-medium">{result.department.name}</p>
             </div>
           </div>
         </div>
+        <p className="mt-4 text-[13px] text-neutral-500">Save this number. Anyone with it can follow the progress.</p>
 
-        <p className="mt-6 text-sm text-slate-500">
-          Save this number or take a screenshot. Anyone with it can follow the progress.
-        </p>
-        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <Link to={`/track/${result.trackingNumber}`} className="btn btn-primary btn-lg">
-            <Search className="size-5" aria-hidden="true" /> Track this complaint
+        <div className="mt-8 flex gap-2">
+          <Link to={`/track/${result.trackingNumber}`} className="btn btn-primary">
+            Track this complaint
           </Link>
-          <Link to="/" className="btn btn-secondary btn-lg">
-            Back to home
+          <Link to="/" className="btn btn-secondary">
+            Done
           </Link>
         </div>
       </div>
@@ -209,38 +153,36 @@ export function ReportComplaint() {
   if (result) return <Confirmation result={result} />;
 
   return (
-    <main className="flex-1">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_340px] lg:py-14">
-        <div>
-          <p className="eyebrow">Report a problem</p>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">{STEPS[step].title}</h1>
-          <div className="mt-8">
-            <Stepper step={step} />
+    <main className="container-page flex-1 py-10 sm:py-14">
+      <div className="grid gap-10 lg:grid-cols-[1fr_300px]">
+        <div className="max-w-2xl">
+          <p className="kicker">Report a problem</p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{TITLES[step]}</h1>
+          <div className="mt-6">
+            <Steps step={step} />
           </div>
 
-          <form className="card mt-8 p-5 sm:p-8" onSubmit={onSubmit} noValidate>
+          <form className="mt-8" onSubmit={onSubmit} noValidate>
             {error ? (
-              <p role="alert" className="mb-6 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800 ring-1 ring-red-200">
-                <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <p role="alert" className="mb-6 flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+                <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
                 {error}
               </p>
             ) : null}
 
-            <div key={step} className="animate-rise space-y-6">
+            <div key={step} className="animate-fade space-y-6">
               {step === 0 ? (
                 <>
                   <fieldset>
-                    <legend className="field-label">Type of problem</legend>
-                    <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                    <legend className="label">Type of problem</legend>
+                    <div className="card divide-y divide-neutral-200 overflow-hidden">
                       {Object.entries(CATEGORY_META).map(([value, meta]) => {
                         const selected = form.category === value;
                         return (
                           <label
                             key={value}
-                            className={`relative flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${
-                              selected
-                                ? "border-brand-500 bg-brand-50/50 ring-4 ring-brand-500/10"
-                                : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                            className={`flex cursor-pointer items-center gap-3 px-3.5 py-3 transition-colors ${
+                              selected ? "bg-neutral-50" : "hover:bg-neutral-50/60"
                             }`}
                           >
                             <input
@@ -249,47 +191,40 @@ export function ReportComplaint() {
                               value={value}
                               checked={selected}
                               onChange={(e) => update("category", e.target.value)}
-                              className="sr-only"
+                              className="size-4 accent-neutral-900"
                             />
-                            <CategoryIcon category={value} />
+                            <CategoryIcon category={value} size="sm" />
                             <span className="min-w-0">
-                              <span className="block font-semibold text-slate-900">{meta.label}</span>
-                              <span className="block text-sm text-slate-500">{meta.hint}</span>
+                              <span className="block font-medium">{meta.label}</span>
+                              <span className="block text-[13px] text-neutral-500">{meta.hint}</span>
                             </span>
-                            {selected ? (
-                              <span className="absolute top-3 right-3 grid size-5 place-items-center rounded-full bg-brand-600 text-white">
-                                <Check className="size-3" strokeWidth={3} />
-                              </span>
-                            ) : null}
                           </label>
                         );
                       })}
                     </div>
                   </fieldset>
                   <div>
-                    <label htmlFor="description" className="field-label">
-                      Describe the problem
+                    <label htmlFor="description" className="label">
+                      Description
                     </label>
-                    <span className="field-hint">What is wrong and how long has it been like this?</span>
+                    <span className="hint">What is wrong and how long has it been like this?</span>
                     <textarea
                       id="description"
-                      rows={5}
+                      rows={4}
                       maxLength={2000}
                       className="input resize-none"
-                      placeholder="e.g. A water pipe burst this morning near the market and the road is flooding."
                       value={form.description}
                       onChange={(e) => update("description", e.target.value)}
                     />
-                    <p className="mt-1.5 text-right text-xs text-slate-400">{form.description.length} / 2000</p>
                   </div>
                 </>
               ) : null}
 
               {step === 1 ? (
                 <>
-                  <div className="grid gap-6 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label htmlFor="region" className="field-label">
+                      <label htmlFor="region" className="label">
                         Region
                       </label>
                       <select id="region" className="input" value={form.region} onChange={(e) => update("region", e.target.value)}>
@@ -299,38 +234,33 @@ export function ReportComplaint() {
                       </select>
                     </div>
                     <div>
-                      <label htmlFor="area" className="field-label">
+                      <label htmlFor="area" className="label">
                         Town or area
                       </label>
-                      <input
-                        id="area"
-                        className="input"
-                        placeholder="e.g. Serrekunda"
-                        value={form.area}
-                        onChange={(e) => update("area", e.target.value)}
-                      />
+                      <input id="area" className="input" placeholder="Serrekunda" value={form.area} onChange={(e) => update("area", e.target.value)} />
                     </div>
                   </div>
                   <div>
-                    <label htmlFor="landmark" className="field-label">
-                      Nearby landmark <span className="font-normal text-slate-400">(optional)</span>
+                    <label htmlFor="landmark" className="label">
+                      Landmark <span className="font-normal text-neutral-400">Optional</span>
                     </label>
-                    <span className="field-hint">A market, school, mosque or junction people know</span>
-                    <input id="landmark" className="input" value={form.landmark} onChange={(e) => update("landmark", e.target.value)} />
+                    <input
+                      id="landmark"
+                      className="input"
+                      placeholder="Market, school, mosque or junction"
+                      value={form.landmark}
+                      onChange={(e) => update("landmark", e.target.value)}
+                    />
                   </div>
-                  <div className="flex flex-col gap-4 rounded-xl border border-dashed border-sky-200 bg-sky-50/50 p-5 sm:flex-row sm:items-center">
-                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-sky-100 text-sky-600">
-                      <LocateFixed className="size-5" aria-hidden="true" />
-                    </span>
-                    <div className="flex-1">
-                      <p className="font-semibold text-slate-900">{coords ? "Exact location added" : "Add your exact location"}</p>
-                      <p className="text-sm text-slate-600">
-                        {coords
-                          ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`
-                          : geoMessage || "Optional. Helps the crew find the exact spot."}
+                  <div className="card flex items-center gap-3 p-3.5">
+                    <LocateFixed className="size-4 shrink-0 text-neutral-500" aria-hidden="true" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{coords ? "Exact location added" : "Exact location"}</p>
+                      <p className="text-[13px] text-neutral-500">
+                        {coords ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}` : geoMessage || "Optional. Helps the crew find the spot."}
                       </p>
                     </div>
-                    <button type="button" className="btn btn-secondary" onClick={useLocation}>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={useLocation}>
                       {coords ? "Update" : "Use my location"}
                     </button>
                   </div>
@@ -340,31 +270,29 @@ export function ReportComplaint() {
               {step === 2 ? (
                 <>
                   <div>
-                    <p className="field-label">
-                      Photo <span className="font-normal text-slate-400">(optional)</span>
+                    <p className="label">
+                      Photo <span className="font-normal text-neutral-400">Optional</span>
                     </p>
                     {photo ? (
-                      <div className="relative overflow-hidden rounded-xl border border-slate-200">
-                        <img src={photo} alt="Selected" className="max-h-72 w-full object-cover" />
+                      <div className="relative overflow-hidden rounded-lg border border-neutral-200">
+                        <img src={photo} alt="Selected" className="max-h-64 w-full object-cover" />
                         <button
                           type="button"
-                          className="absolute top-3 right-3 grid size-9 place-items-center rounded-full bg-white/90 text-slate-700 shadow backdrop-blur hover:bg-white"
+                          className="btn btn-secondary btn-sm absolute top-2 right-2 px-2"
                           aria-label="Remove photo"
                           onClick={() => setPhoto(null)}
                         >
-                          <X className="size-4" />
+                          <X className="size-3.5" />
                         </button>
                       </div>
                     ) : (
                       <label
                         htmlFor="photo"
-                        className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 px-6 py-10 text-center transition hover:border-brand-300 hover:bg-brand-50/30"
+                        className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-neutral-300 px-6 py-8 text-center transition-colors hover:bg-neutral-50"
                       >
-                        <span className="grid size-12 place-items-center rounded-2xl bg-white text-brand-600 shadow-card ring-1 ring-slate-100">
-                          <ImagePlus className="size-6" aria-hidden="true" />
-                        </span>
-                        <span className="mt-3 font-semibold text-slate-900">Add a photo</span>
-                        <span className="mt-1 text-sm text-slate-500">Take one now or choose from your gallery</span>
+                        <ImagePlus className="size-5 text-neutral-400" aria-hidden="true" />
+                        <span className="mt-2 font-medium">Add a photo</span>
+                        <span className="text-[13px] text-neutral-500">Take one now or choose from your gallery</span>
                       </label>
                     )}
                     <input
@@ -378,36 +306,25 @@ export function ReportComplaint() {
                       }}
                     />
                   </div>
-                  <div className="border-t border-slate-100 pt-6">
-                    <p className="font-bold text-slate-900">Contact details (optional)</p>
-                    <p className="mt-1 text-sm text-slate-500">In case the department needs to ask you something.</p>
-                  </div>
-                  <div className="grid gap-6 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label htmlFor="name" className="field-label">
-                        Name
+                      <label htmlFor="name" className="label">
+                        Name <span className="font-normal text-neutral-400">Optional</span>
                       </label>
                       <input id="name" className="input" value={form.reporterName} onChange={(e) => update("reporterName", e.target.value)} />
                     </div>
                     <div>
-                      <label htmlFor="phone" className="field-label">
-                        Phone number
+                      <label htmlFor="phone" className="label">
+                        Phone <span className="font-normal text-neutral-400">Optional</span>
                       </label>
-                      <input
-                        id="phone"
-                        type="tel"
-                        className="input"
-                        placeholder="+220"
-                        value={form.phone}
-                        onChange={(e) => update("phone", e.target.value)}
-                      />
+                      <input id="phone" type="tel" className="input" placeholder="+220" value={form.phone} onChange={(e) => update("phone", e.target.value)} />
                     </div>
                   </div>
                 </>
               ) : null}
             </div>
 
-            <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-between">
+            <div className="mt-8 flex items-center justify-between border-t border-neutral-200 pt-5">
               {step > 0 ? (
                 <button type="button" className="btn btn-ghost" onClick={() => setStep((s) => s - 1)}>
                   <ArrowLeft className="size-4" aria-hidden="true" /> Back
@@ -416,19 +333,19 @@ export function ReportComplaint() {
                 <span />
               )}
               {step < STEPS.length - 1 ? (
-                <button type="button" className="btn btn-primary btn-lg" onClick={next}>
-                  Continue <ArrowRight className="size-5" aria-hidden="true" />
+                <button type="button" className="btn btn-primary" onClick={next}>
+                  Continue <ArrowRight className="size-4" aria-hidden="true" />
                 </button>
               ) : (
-                <button type="submit" className="btn btn-primary btn-lg">
-                  <Send className="size-5" aria-hidden="true" /> Send complaint
+                <button type="submit" className="btn btn-primary">
+                  Send complaint
                 </button>
               )}
             </div>
           </form>
         </div>
 
-        <aside className="lg:sticky lg:top-28 lg:self-start">
+        <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
           <Summary form={form} />
         </aside>
       </div>
