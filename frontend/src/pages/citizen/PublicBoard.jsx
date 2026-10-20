@@ -1,90 +1,78 @@
-import { useEffect, useState } from "react";
-import { listPublicComplaints } from "../../api/complaints.js";
+import { useState } from "react";
+import { listComplaints } from "../../data/mock.js";
 import { ComplaintCard } from "../../components/ComplaintCard.jsx";
-import { categories, regions, statuses } from "../../utils/strings.js";
+import { PageHeader } from "../../components/PageHeader.jsx";
+import { CATEGORY_META, STATUS_META, STATUS_ORDER } from "../../utils/meta.js";
+import { regions } from "../../utils/strings.js";
+
+const EMPTY = { category: "", region: "", status: "" };
 
 export function PublicBoard() {
-  const [filters, setFilters] = useState({ region: "", category: "", status: "", area: "", page: 1 });
-  const [data, setData] = useState({ items: [], pages: 1, total: 0 });
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(true);
+  const [filters, setFilters] = useState(EMPTY);
+  const items = listComplaints(filters);
+  const filtered = filters.category || filters.region || filters.status;
 
-  useEffect(() => {
-    setBusy(true);
-    listPublicComplaints(filters)
-      .then(setData)
-      .catch((err) => setError(err.message))
-      .finally(() => setBusy(false));
-  }, [filters]);
-
-  function setFilter(field, value) {
-    setFilters((prev) => ({ ...prev, [field]: value, page: 1 }));
+  function set(field, value) {
+    setFilters((prev) => ({ ...prev, [field]: value }));
   }
 
   return (
-    <main className="page">
-      <h1>Public board</h1>
-      <p className="muted">Open reports from across The Gambia. Private contact details are never shown.</p>
-      <div className="filters">
-        <select value={filters.region} onChange={(e) => setFilter("region", e.target.value)}>
-          <option value="">All regions</option>
-          {regions.map((item) => (
-            <option key={item}>{item}</option>
-          ))}
-        </select>
-        <input
-          placeholder="Area or town"
-          value={filters.area}
-          onChange={(e) => setFilter("area", e.target.value)}
-        />
-        <select value={filters.category} onChange={(e) => setFilter("category", e.target.value)}>
-          <option value="">All categories</option>
-          {categories.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-        <select value={filters.status} onChange={(e) => setFilter("status", e.target.value)}>
-          <option value="">All statuses</option>
-          {statuses.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      {busy ? <p>Loading…</p> : null}
-      {error ? <p className="error">{error}</p> : null}
-      {!busy && data.items.length === 0 ? <p className="muted">No complaints match those filters.</p> : null}
-      <div className="card-grid">
-        {data.items.map((item) => (
-          <ComplaintCard key={item.id} complaint={item} />
-        ))}
-      </div>
-      {data.pages > 1 ? (
-        <div className="actions">
-          <button
-            type="button"
-            className="btn btn-ghost"
-            disabled={filters.page <= 1}
-            onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))}
-          >
-            Previous
-          </button>
-          <span>
-            Page {filters.page} of {data.pages}
+    <main className="flex-1">
+      <PageHeader
+        eyebrow="Public board"
+        title="Every complaint, in the open"
+        description="What has been reported across The Gambia and what each office is doing about it. Personal details are never shown."
+      />
+
+      <div className="container-page py-8">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <select aria-label="Type" className="input sm:w-48" value={filters.category} onChange={(e) => set("category", e.target.value)}>
+            <option value="">All types</option>
+            {Object.entries(CATEGORY_META).map(([key, meta]) => (
+              <option key={key} value={key}>
+                {meta.label}
+              </option>
+            ))}
+          </select>
+          <select aria-label="Region" className="input sm:w-48" value={filters.region} onChange={(e) => set("region", e.target.value)}>
+            <option value="">All regions</option>
+            {regions.map((item) => (
+              <option key={item}>{item}</option>
+            ))}
+          </select>
+          <select aria-label="Status" className="input sm:w-40" value={filters.status} onChange={(e) => set("status", e.target.value)}>
+            <option value="">All statuses</option>
+            {STATUS_ORDER.map((status) => (
+              <option key={status} value={status}>
+                {STATUS_META[status].label}
+              </option>
+            ))}
+          </select>
+          {filtered ? (
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setFilters(EMPTY)}>
+              Clear
+            </button>
+          ) : null}
+          <span className="text-[13px] text-neutral-500 sm:ml-auto" aria-live="polite">
+            {items.length} {items.length === 1 ? "result" : "results"}
           </span>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            disabled={filters.page >= data.pages}
-            onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 }))}
-          >
-            Next
-          </button>
         </div>
-      ) : null}
+
+        {items.length === 0 ? (
+          <div className="card mt-6 p-10 text-center">
+            <p className="font-medium">No complaints match these filters</p>
+            <button type="button" className="link mt-2 text-[13px]" onClick={() => setFilters(EMPTY)}>
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((item) => (
+              <ComplaintCard key={item.id} complaint={item} />
+            ))}
+          </ul>
+        )}
+      </div>
     </main>
   );
 }
